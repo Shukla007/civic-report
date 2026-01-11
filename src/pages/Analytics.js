@@ -15,6 +15,7 @@ import {
 import { Line, Bar, Pie } from 'react-chartjs-2';
 import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
 import Navigation from '../components/Navigation';
+import { useAuth } from '../context/AuthContext';
 import './Analytics.css';
 
 ChartJS.register(
@@ -35,6 +36,7 @@ function Analytics() {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState('30'); // days
+  const { getAuthHeader } = useAuth();
 
   useEffect(() => {
     fetchReports();
@@ -42,6 +44,7 @@ function Analytics() {
 
   const fetchReports = async () => {
     try {
+      // Fetch reports (public endpoint for data)
       const response = await axios.get(`${API_URL}/reports`);
       setReports(response.data);
       setLoading(false);

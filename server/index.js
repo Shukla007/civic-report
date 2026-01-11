@@ -7,12 +7,19 @@ const { v4: uuidv4 } = require('uuid');
 const http = require('http');
 const socketIo = require('socket.io');
 
+// Import MongoDB connection
+const connectDB = require('./config/db');
+
+// Import auth and database modules
+const { verifyCredentials, createSession, invalidateToken, adminAuth } = require('./auth');
+const db = require('./database-mongo');
+
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
     origin: "http://localhost:3000",
-    methods: ["GET", "POST"]
+    methods: ["GET", "POST", "PATCH", "DELETE"]
   }
 });
 
@@ -55,9 +62,6 @@ const upload = multer({
   }
 });
 
-// In-memory database (replace with real database in production)
-let reports = [];
-
 // Socket.io connection
 io.on('connection', (socket) => {
   console.log('Client connected');
@@ -72,31 +76,77 @@ function emitUpdate(type, data) {
   io.emit(type, data);
 }
 
-// Routes
+// ==================== AUTH ROUTES ====================
 
-// Get all reports
-app.get('/api/reports', (req, res) => {
-  res.json(reports);
-});
-
-// Get single report
-app.get('/api/reports/:id', (req, res) => {
-  const report = reports.find(r => r.reportId === req.params.id);
-  if (!report) {
-    return res.status(404).json({ error: 'Report not found' });
+// Admin login
+app.post('/api/admin/login', (req, res) => {
+  const { username, password } = req.body;
+  
+  if (!username || !password) {
+    return res.status(400).json({ error: 'Username and password are required' });
   }
-  res.json(report);
+  
+  if (verifyCredentials(username, password)) {
+    const token = createSession();
+    res.json({ 
+      success: true, 
+      token,
+      message: 'Login successful'
+    });
+  } else {
+    res.status(401).json({ error: 'Invalid credentials' });
+  }
 });
 
-// Create new report
+// Admin logout
+app.post('/api/admin/logout', adminAuth, (req, res) => {
+  const token = req.headers.authorization.split(' ')[1];
+  invalidateToken(token);
+  res.json({ success: true, message: 'Logged out successfully' });
+});
+
+// Verify admin token
+app.get('/api/admin/verify', adminAuth, (req, res) => {
+  res.json({ valid: true, message: 'Token is valid' });
+});
+
+// ==================== PUBLIC ROUTES (Citizens) ====================
+
+// Get all reports (public - for citizen tracking)
+app.get('/api/reports', async (req, res) => {
+  try {
+    const reports = await db.getAllReports();
+    res.json(reports);
+  } catch (error) {
+    console.error('Error fetching reports:', error);
+    res.status(500).json({ error: 'Failed to fetch reports' });
+  }
+});
+
+// Get single report (public - for citizen tracking)
+app.get('/api/reports/:id', async (req, res) => {
+  try {
+    const report = await db.getReportById(req.params.id);
+    if (!report) {
+      return res.status(404).json({ error: 'Report not found' });
+    }
+    res.json(report);
+  } catch (error) {
+    console.error('Error fetching report:', error);
+    res.status(500).json({ error: 'Failed to fetch report' });
+  }
+});
+
+// Create new report (public - citizens can submit)
 app.post('/api/reports', upload.fields([
   { name: 'photos', maxCount: 5 },
   { name: 'voiceNote', maxCount: 1 }
-]), (req, res) => {
+]), async (req, res) => {
   try {
     const { title, description, category, priority, latitude, longitude } = req.body;
     
-    const reportId = `IND-${String(reports.length + 1).padStart(5, '0')}`;
+    const reportNumber = await db.getNextReportId();
+    const reportId = `IND-${String(reportNumber).padStart(5, '0')}`;
     
     const photos = req.files['photos'] 
       ? req.files['photos'].map(file => `/uploads/${file.filename}`)
@@ -118,8 +168,6 @@ app.post('/api/reports', upload.fields([
       photos,
       voiceNote,
       assignedTo: null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
       history: [
         {
           timestamp: new Date().toISOString(),
@@ -129,38 +177,40 @@ app.post('/api/reports', upload.fields([
       ]
     };
     
-    reports.push(newReport);
+    const savedReport = await db.addReport(newReport);
     
     // Emit real-time update
-    emitUpdate('newReport', newReport);
+    emitUpdate('newReport', savedReport);
     
-    res.status(201).json(newReport);
+    res.status(201).json(savedReport);
   } catch (error) {
     console.error('Error creating report:', error);
     res.status(500).json({ error: 'Failed to create report' });
   }
 });
 
-// Update report
-app.patch('/api/reports/:id', (req, res) => {
+// ==================== ADMIN PROTECTED ROUTES ====================
+
+// Update report (admin only)
+app.patch('/api/reports/:id', adminAuth, async (req, res) => {
   try {
-    const reportIndex = reports.findIndex(r => r.reportId === req.params.id);
+    const report = await db.getReportById(req.params.id);
     
-    if (reportIndex === -1) {
+    if (!report) {
       return res.status(404).json({ error: 'Report not found' });
     }
     
     const { status, assignedTo, notes } = req.body;
     
+    const updates = {};
+    
     if (status) {
-      reports[reportIndex].status = status;
+      updates.status = status;
     }
     
     if (assignedTo !== undefined) {
-      reports[reportIndex].assignedTo = assignedTo;
+      updates.assignedTo = assignedTo;
     }
-    
-    reports[reportIndex].updatedAt = new Date().toISOString();
     
     // Add to history
     const historyEntry = {
@@ -173,12 +223,14 @@ app.patch('/api/reports/:id', (req, res) => {
       historyEntry.action += ` - Assigned to ${assignedTo}`;
     }
     
-    reports[reportIndex].history.push(historyEntry);
+    updates.history = [...(report.history || []), historyEntry];
+    
+    const updatedReport = await db.updateReport(req.params.id, updates);
     
     // Emit real-time update
-    emitUpdate('reportUpdated', reports[reportIndex]);
+    emitUpdate('reportUpdated', updatedReport);
     
-    res.json(reports[reportIndex]);
+    res.json(updatedReport);
   } catch (error) {
     console.error('Error updating report:', error);
     res.status(500).json({ error: 'Failed to update report' });
@@ -186,75 +238,92 @@ app.patch('/api/reports/:id', (req, res) => {
 });
 
 // Delete report (admin only)
-app.delete('/api/reports/:id', (req, res) => {
-  const reportIndex = reports.findIndex(r => r.reportId === req.params.id);
-  
-  if (reportIndex === -1) {
-    return res.status(404).json({ error: 'Report not found' });
-  }
-  
-  const deletedReport = reports.splice(reportIndex, 1)[0];
-  
-  // Delete associated files
-  if (deletedReport.photos) {
-    deletedReport.photos.forEach(photo => {
-      const filePath = path.join(__dirname, photo);
+app.delete('/api/reports/:id', adminAuth, async (req, res) => {
+  try {
+    const report = await db.getReportById(req.params.id);
+    
+    if (!report) {
+      return res.status(404).json({ error: 'Report not found' });
+    }
+    
+    // Delete associated files
+    if (report.photos) {
+      report.photos.forEach(photo => {
+        const filePath = path.join(__dirname, photo);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+      });
+    }
+    
+    if (report.voiceNote) {
+      const filePath = path.join(__dirname, report.voiceNote);
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
       }
-    });
-  }
-  
-  if (deletedReport.voiceNote) {
-    const filePath = path.join(__dirname, deletedReport.voiceNote);
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
     }
+    
+    await db.deleteReport(req.params.id);
+    
+    emitUpdate('reportDeleted', { reportId: req.params.id });
+    
+    res.json({ message: 'Report deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting report:', error);
+    res.status(500).json({ error: 'Failed to delete report' });
   }
-  
-  emitUpdate('reportDeleted', { reportId: req.params.id });
-  
-  res.json({ message: 'Report deleted successfully' });
 });
 
-// Get analytics data
-app.get('/api/analytics', (req, res) => {
-  const analytics = {
-    totalReports: reports.length,
-    byCategory: {},
-    byStatus: {},
-    byPriority: {},
-    byDepartment: {}
-  };
-  
-  reports.forEach(report => {
-    // Category
-    analytics.byCategory[report.category] = (analytics.byCategory[report.category] || 0) + 1;
+// Get analytics data (admin only)
+app.get('/api/analytics', adminAuth, async (req, res) => {
+  try {
+    const reports = await db.getAllReports();
     
-    // Status
-    analytics.byStatus[report.status] = (analytics.byStatus[report.status] || 0) + 1;
+    const analytics = {
+      totalReports: reports.length,
+      byCategory: {},
+      byStatus: {},
+      byPriority: {},
+      byDepartment: {}
+    };
     
-    // Priority
-    analytics.byPriority[report.priority] = (analytics.byPriority[report.priority] || 0) + 1;
-    
-    // Department
-    if (report.assignedTo) {
-      if (!analytics.byDepartment[report.assignedTo]) {
-        analytics.byDepartment[report.assignedTo] = { total: 0, resolved: 0 };
+    reports.forEach(report => {
+      // Category
+      analytics.byCategory[report.category] = (analytics.byCategory[report.category] || 0) + 1;
+      
+      // Status
+      analytics.byStatus[report.status] = (analytics.byStatus[report.status] || 0) + 1;
+      
+      // Priority
+      analytics.byPriority[report.priority] = (analytics.byPriority[report.priority] || 0) + 1;
+      
+      // Department
+      if (report.assignedTo) {
+        if (!analytics.byDepartment[report.assignedTo]) {
+          analytics.byDepartment[report.assignedTo] = { total: 0, resolved: 0 };
+        }
+        analytics.byDepartment[report.assignedTo].total++;
+        if (report.status === 'resolved') {
+          analytics.byDepartment[report.assignedTo].resolved++;
+        }
       }
-      analytics.byDepartment[report.assignedTo].total++;
-      if (report.status === 'resolved') {
-        analytics.byDepartment[report.assignedTo].resolved++;
-      }
-    }
-  });
-  
-  res.json(analytics);
+    });
+    
+    res.json(analytics);
+  } catch (error) {
+    console.error('Error fetching analytics:', error);
+    res.status(500).json({ error: 'Failed to fetch analytics' });
+  }
 });
 
 // Health check
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', reports: reports.length });
+app.get('/health', async (req, res) => {
+  try {
+    const count = await db.getReportCount();
+    res.json({ status: 'ok', reports: count, database: 'mongodb' });
+  } catch (error) {
+    res.status(500).json({ status: 'error', error: error.message });
+  }
 });
 
 // Error handling middleware
@@ -263,8 +332,27 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: err.message || 'Something went wrong!' });
 });
 
-// Start server
-server.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-  console.log(`📊 Reports in database: ${reports.length}`);
-});
+// Connect to MongoDB and start server
+async function startServer() {
+  try {
+    // Connect to MongoDB
+    await connectDB();
+    
+    // Initialize database module
+    await db.initDB();
+    
+    // Start listening
+    server.listen(PORT, async () => {
+      const count = await db.getReportCount();
+      console.log(`🚀 Server running on http://localhost:${PORT}`);
+      console.log(`📊 Reports in database: ${count}`);
+      console.log(`🔐 Admin credentials: username=admin, password=admin123`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+}
+
+// Run the server
+startServer();

@@ -118,6 +118,7 @@ function ReportModal({ report, onClose, onUpdate }) {
                 <option value="acknowledged">Acknowledged</option>
                 <option value="in-progress">In Progress</option>
                 <option value="resolved">Resolved</option>
+                <option value="rejected">Rejected</option>
               </select>
             </div>
 

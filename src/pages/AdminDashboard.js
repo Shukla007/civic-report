@@ -5,6 +5,7 @@ import L from 'leaflet';
 import Navigation from '../components/Navigation';
 import ReportModal from '../components/ReportModal';
 import FilterPanel from '../components/FilterPanel';
+import { useAuth } from '../context/AuthContext';
 import 'leaflet/dist/leaflet.css';
 import './AdminDashboard.css';
 
@@ -48,6 +49,7 @@ function AdminDashboard() {
     search: ''
   });
   const [viewMode, setViewMode] = useState('map'); // 'map' or 'list'
+  const { getAuthHeader } = useAuth();
 
   useEffect(() => {
     fetchReports();
@@ -97,11 +99,16 @@ function AdminDashboard() {
 
   const handleUpdateReport = async (reportId, updates) => {
     try {
-      await axios.patch(`${API_URL}/reports/${reportId}`, updates);
+      await axios.patch(`${API_URL}/reports/${reportId}`, updates, {
+        headers: getAuthHeader()
+      });
       await fetchReports();
       setSelectedReport(null);
     } catch (err) {
       console.error('Error updating report:', err);
+      if (err.response?.status === 401) {
+        alert('Session expired. Please login again.');
+      }
     }
   };
 

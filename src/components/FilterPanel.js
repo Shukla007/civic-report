@@ -12,7 +12,7 @@ const CATEGORIES = [
   'Other'
 ];
 
-const STATUSES = ['pending', 'acknowledged', 'in-progress', 'resolved'];
+const STATUSES = ['pending', 'acknowledged', 'in-progress', 'resolved', 'rejected'];
 const PRIORITIES = ['low', 'medium', 'high'];
 
 function FilterPanel({ filters, setFilters }) {
