@@ -1,9 +1,10 @@
 const crypto = require('crypto');
+require('dotenv').config();
 
-// Hardcoded admin credentials
+// Admin credentials from environment variables
 const ADMIN_CREDENTIALS = {
-  username: 'admin',
-  password: 'admin123'
+  username: process.env.ADMIN_USERNAME || 'admin',
+  password: process.env.ADMIN_PASSWORD || 'changeme'
 };
 
 // Simple token storage (in production, use Redis or database)

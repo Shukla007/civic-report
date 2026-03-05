@@ -353,7 +353,6 @@ async function startServer() {
       const count = await db.getReportCount();
       console.log(`🚀 Server running on http://localhost:${PORT}`);
       console.log(`📊 Reports in database: ${count}`);
-      console.log(`🔐 Admin credentials: username=admin, password=admin123`);
     });
   } catch (error) {
     console.error('Failed to start server:', error);
