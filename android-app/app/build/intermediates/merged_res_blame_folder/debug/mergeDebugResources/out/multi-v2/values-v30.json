@@ -1,0 +1,19 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.civicreport.app-mergeDebugResources-68:/values-v30/values-v30.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\shukl\\.gradle\\caches\\8.11.1\\transforms\\0d8839ae3ffc7c65cddae4796e89ed32\\transformed\\material3-release\\res\\values-v30\\values-v30.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "72",
+                        "endOffsets": "123"
+                    }
+                }
+            ]
+        }
+    ]
+}
