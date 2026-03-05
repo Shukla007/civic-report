@@ -3,7 +3,7 @@ package com.civicreport.data.api
 object ApiConstants {
     // Use 10.0.2.2 for Android emulator to connect to localhost
     // For physical device, use your computer's IP address
-    const val BASE_URL = "http://10.0.2.2:5000/"
+    const val BASE_URL = "https://civic-report-production.up.railway.app/"
     
     val CATEGORIES = listOf(
         "Road Damage",

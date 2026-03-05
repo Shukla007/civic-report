@@ -83,7 +83,7 @@ function ReportModal({ report, onClose, onUpdate }) {
                 {report.photos.map((photo, index) => (
                   <img
                     key={index}
-                    src={`http://localhost:5000${photo}`}
+                    src={`${process.env.REACT_APP_API_URL?.replace('/api', '') || 'https://civic-report-production.up.railway.app'}${photo}`}
                     alt={`Report ${index + 1}`}
                     className="report-photo"
                   />
@@ -97,7 +97,7 @@ function ReportModal({ report, onClose, onUpdate }) {
             <div className="report-section">
               <h3>Voice Note</h3>
               <audio controls className="audio-player">
-                <source src={`http://localhost:5000${report.voiceNote}`} type="audio/webm" />
+                <source src={`${process.env.REACT_APP_API_URL?.replace('/api', '') || 'https://civic-report-production.up.railway.app'}${report.voiceNote}`} type="audio/webm" />
                 Your browser does not support the audio element.
               </audio>
             </div>

@@ -17,7 +17,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
 });
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = process.env.REACT_APP_API_URL || 'https://civic-report-production.up.railway.app/api';
 
 // Custom marker icons based on priority
 const createCustomIcon = (priority, status) => {
