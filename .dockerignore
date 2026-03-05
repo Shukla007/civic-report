@@ -1,0 +1,12 @@
+node_modules
+android-app
+src
+public
+build
+*.md
+.git
+.gitignore
+*.log
+server/.env
+server/uploads/*
+!server/uploads/.gitkeep
