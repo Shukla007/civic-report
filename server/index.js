@@ -6,6 +6,7 @@ const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 const http = require('http');
 const socketIo = require('socket.io');
+require('dotenv').config();
 
 // Import MongoDB connection
 const connectDB = require('./config/db');
@@ -16,17 +17,23 @@ const db = require('./database-mongo');
 
 const app = express();
 const server = http.createServer(app);
+
+// CORS origins - comma-separated in production
+const corsOrigins = process.env.CORS_ORIGIN 
+  ? process.env.CORS_ORIGIN.split(',').map(s => s.trim())
+  : ["http://localhost:3000"];
+
 const io = socketIo(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: corsOrigins,
     methods: ["GET", "POST", "PATCH", "DELETE"]
   }
 });
 
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors());
+app.use(cors({ origin: corsOrigins, credentials: true }));
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 

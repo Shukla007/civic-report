@@ -1,0 +1,13 @@
+# Environment variables
+.env
+
+# Uploaded files (use cloud storage in production)
+uploads/*
+!uploads/.gitkeep
+
+# Node modules
+node_modules/
+
+# Logs
+*.log
+npm-debug.log*

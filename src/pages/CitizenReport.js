@@ -174,7 +174,7 @@ function CitizenReport() {
 
           {/* Title */}
           <div className="form-group">
-            <label htmlFor="title">Title *</label>
+            <label htmlFor="title">Issue Name *</label>
             <input
               type="text"
               id="title"
