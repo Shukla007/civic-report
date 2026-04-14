@@ -1,12 +1,14 @@
 package com.civicreport.ui.theme
 
 import android.app.Activity
+import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
@@ -26,6 +28,8 @@ private val LightColorScheme = lightColorScheme(
     onSurface = OnSurface,
     surfaceVariant = SurfaceVariant,
     onSurfaceVariant = OnSurfaceVariant,
+    outline = CardBorder,
+    outlineVariant = CardBorder,
     error = Error,
     onError = OnError
 )
@@ -45,6 +49,8 @@ private val DarkColorScheme = darkColorScheme(
     onSurface = DarkOnSurface,
     surfaceVariant = DarkSurfaceVariant,
     onSurfaceVariant = DarkOnSurfaceVariant,
+    outline = DarkCardBorder,
+    outlineVariant = DarkCardBorder,
     error = Error,
     onError = OnError
 )
@@ -61,8 +67,11 @@ fun CivicReportTheme(
         SideEffect {
             val window = (view.context as Activity).window
             @Suppress("DEPRECATION")
-            window.statusBarColor = if (darkTheme) DarkBackground.toArgb() else Primary.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
+            window.statusBarColor = Color.Transparent.toArgb()
+            WindowCompat.setDecorFitsSystemWindows(window, false)
+            val controller = WindowCompat.getInsetsController(window, view)
+            // Light status bar icons (white) since GradientHeader background is always dark
+            controller.isAppearanceLightStatusBars = false
         }
     }
 

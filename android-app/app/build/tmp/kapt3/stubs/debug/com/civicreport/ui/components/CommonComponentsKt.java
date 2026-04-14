@@ -1,6 +1,5 @@
 package com.civicreport.ui.components;
 
-import androidx.compose.animation.core.*;
 import androidx.compose.foundation.layout.*;
 import androidx.compose.material.icons.Icons;
 import androidx.compose.material.icons.filled.*;
@@ -11,7 +10,6 @@ import androidx.compose.ui.Modifier;
 import androidx.compose.ui.layout.ContentScale;
 import androidx.compose.ui.text.font.FontWeight;
 import androidx.compose.ui.text.style.TextOverflow;
-import com.civicreport.data.api.ApiConstants;
 import com.civicreport.data.model.Report;
 import com.civicreport.ui.theme.*;
 

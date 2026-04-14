@@ -51,6 +51,7 @@ A comprehensive, mobile-first web application for reporting and managing civic i
 ### Prerequisites
 - Node.js 14+ and npm
 - Modern web browser with geolocation support
+- MongoDB (either local MongoDB running on your machine, or a MongoDB Atlas cluster)
 
 ### Setup
 
@@ -64,7 +65,19 @@ A comprehensive, mobile-first web application for reporting and managing civic i
    npm install
    ```
 
-3. **Start the development environment**
+3. **Configure MongoDB**
+
+    This backend uses MongoDB via Mongoose.
+
+    - **Option A (Local MongoDB)**: install MongoDB and ensure it is running on `mongodb://localhost:27017`.
+       - If you do nothing, the server will default to `mongodb://localhost:27017/civic-report`.
+
+    - **Option B (MongoDB Atlas)**: create a `.env` file in the repo root and set `MONGODB_URI`.
+       - Start from the template in `.env.example`.
+       - If you use a `mongodb+srv://...` URI and the server fails with `querySrv ECONNREFUSED`, it’s a DNS/SRV resolver issue in Node.
+          Set `MONGODB_DNS_SERVERS` (see `.env.example`) or switch to a non-SRV Atlas connection string (`mongodb://<host1>,<host2>,<host3>/...`).
+
+4. **Start the development environment**
    
    **Option 1: Run both frontend and backend together**
    ```bash

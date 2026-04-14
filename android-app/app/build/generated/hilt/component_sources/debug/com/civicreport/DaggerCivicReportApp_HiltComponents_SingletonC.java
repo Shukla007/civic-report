@@ -6,14 +6,14 @@ import android.view.View;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.SavedStateHandle;
 import androidx.lifecycle.ViewModel;
-import com.civicreport.data.api.CivicReportApi;
+import com.civicreport.data.local.CivicReportDatabase;
+import com.civicreport.data.local.ReportDao;
 import com.civicreport.data.repository.AuthRepository;
 import com.civicreport.data.repository.ReportRepository;
 import com.civicreport.di.AppModule_ProvideAuthRepositoryFactory;
-import com.civicreport.di.AppModule_ProvideCivicReportApiFactory;
-import com.civicreport.di.AppModule_ProvideOkHttpClientFactory;
+import com.civicreport.di.AppModule_ProvideDatabaseFactory;
+import com.civicreport.di.AppModule_ProvideReportDaoFactory;
 import com.civicreport.di.AppModule_ProvideReportRepositoryFactory;
-import com.civicreport.di.AppModule_ProvideRetrofitFactory;
 import com.civicreport.viewmodel.AnalyticsViewModel;
 import com.civicreport.viewmodel.AnalyticsViewModel_HiltModules;
 import com.civicreport.viewmodel.AuthViewModel;
@@ -55,8 +55,6 @@ import dagger.internal.Provider;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.processing.Generated;
-import okhttp3.OkHttpClient;
-import retrofit2.Retrofit;
 
 @DaggerGenerated
 @Generated(
@@ -381,7 +379,7 @@ public final class DaggerCivicReportApp_HiltComponents_SingletonC {
     }
 
     @Override
-    public void injectMainActivity(MainActivity arg0) {
+    public void injectMainActivity(MainActivity mainActivity) {
     }
 
     @Override
@@ -411,31 +409,19 @@ public final class DaggerCivicReportApp_HiltComponents_SingletonC {
 
     @IdentifierNameString
     private static final class LazyClassKeyProvider {
-      static String com_civicreport_viewmodel_TrackViewModel = "com.civicreport.viewmodel.TrackViewModel";
-
-      static String com_civicreport_viewmodel_AnalyticsViewModel = "com.civicreport.viewmodel.AnalyticsViewModel";
-
-      static String com_civicreport_viewmodel_ReportDetailViewModel = "com.civicreport.viewmodel.ReportDetailViewModel";
-
-      static String com_civicreport_viewmodel_ReportViewModel = "com.civicreport.viewmodel.ReportViewModel";
-
       static String com_civicreport_viewmodel_AuthViewModel = "com.civicreport.viewmodel.AuthViewModel";
 
       static String com_civicreport_viewmodel_DashboardViewModel = "com.civicreport.viewmodel.DashboardViewModel";
 
+      static String com_civicreport_viewmodel_ReportViewModel = "com.civicreport.viewmodel.ReportViewModel";
+
+      static String com_civicreport_viewmodel_TrackViewModel = "com.civicreport.viewmodel.TrackViewModel";
+
+      static String com_civicreport_viewmodel_AnalyticsViewModel = "com.civicreport.viewmodel.AnalyticsViewModel";
+
       static String com_civicreport_viewmodel_LoginViewModel = "com.civicreport.viewmodel.LoginViewModel";
 
-      @KeepFieldType
-      TrackViewModel com_civicreport_viewmodel_TrackViewModel2;
-
-      @KeepFieldType
-      AnalyticsViewModel com_civicreport_viewmodel_AnalyticsViewModel2;
-
-      @KeepFieldType
-      ReportDetailViewModel com_civicreport_viewmodel_ReportDetailViewModel2;
-
-      @KeepFieldType
-      ReportViewModel com_civicreport_viewmodel_ReportViewModel2;
+      static String com_civicreport_viewmodel_ReportDetailViewModel = "com.civicreport.viewmodel.ReportDetailViewModel";
 
       @KeepFieldType
       AuthViewModel com_civicreport_viewmodel_AuthViewModel2;
@@ -444,7 +430,19 @@ public final class DaggerCivicReportApp_HiltComponents_SingletonC {
       DashboardViewModel com_civicreport_viewmodel_DashboardViewModel2;
 
       @KeepFieldType
+      ReportViewModel com_civicreport_viewmodel_ReportViewModel2;
+
+      @KeepFieldType
+      TrackViewModel com_civicreport_viewmodel_TrackViewModel2;
+
+      @KeepFieldType
+      AnalyticsViewModel com_civicreport_viewmodel_AnalyticsViewModel2;
+
+      @KeepFieldType
       LoginViewModel com_civicreport_viewmodel_LoginViewModel2;
+
+      @KeepFieldType
+      ReportDetailViewModel com_civicreport_viewmodel_ReportDetailViewModel2;
     }
   }
 
@@ -505,31 +503,22 @@ public final class DaggerCivicReportApp_HiltComponents_SingletonC {
 
     @IdentifierNameString
     private static final class LazyClassKeyProvider {
-      static String com_civicreport_viewmodel_ReportViewModel = "com.civicreport.viewmodel.ReportViewModel";
-
-      static String com_civicreport_viewmodel_AuthViewModel = "com.civicreport.viewmodel.AuthViewModel";
-
-      static String com_civicreport_viewmodel_ReportDetailViewModel = "com.civicreport.viewmodel.ReportDetailViewModel";
-
-      static String com_civicreport_viewmodel_LoginViewModel = "com.civicreport.viewmodel.LoginViewModel";
+      static String com_civicreport_viewmodel_DashboardViewModel = "com.civicreport.viewmodel.DashboardViewModel";
 
       static String com_civicreport_viewmodel_AnalyticsViewModel = "com.civicreport.viewmodel.AnalyticsViewModel";
 
       static String com_civicreport_viewmodel_TrackViewModel = "com.civicreport.viewmodel.TrackViewModel";
 
-      static String com_civicreport_viewmodel_DashboardViewModel = "com.civicreport.viewmodel.DashboardViewModel";
+      static String com_civicreport_viewmodel_LoginViewModel = "com.civicreport.viewmodel.LoginViewModel";
+
+      static String com_civicreport_viewmodel_ReportViewModel = "com.civicreport.viewmodel.ReportViewModel";
+
+      static String com_civicreport_viewmodel_ReportDetailViewModel = "com.civicreport.viewmodel.ReportDetailViewModel";
+
+      static String com_civicreport_viewmodel_AuthViewModel = "com.civicreport.viewmodel.AuthViewModel";
 
       @KeepFieldType
-      ReportViewModel com_civicreport_viewmodel_ReportViewModel2;
-
-      @KeepFieldType
-      AuthViewModel com_civicreport_viewmodel_AuthViewModel2;
-
-      @KeepFieldType
-      ReportDetailViewModel com_civicreport_viewmodel_ReportDetailViewModel2;
-
-      @KeepFieldType
-      LoginViewModel com_civicreport_viewmodel_LoginViewModel2;
+      DashboardViewModel com_civicreport_viewmodel_DashboardViewModel2;
 
       @KeepFieldType
       AnalyticsViewModel com_civicreport_viewmodel_AnalyticsViewModel2;
@@ -538,7 +527,16 @@ public final class DaggerCivicReportApp_HiltComponents_SingletonC {
       TrackViewModel com_civicreport_viewmodel_TrackViewModel2;
 
       @KeepFieldType
-      DashboardViewModel com_civicreport_viewmodel_DashboardViewModel2;
+      LoginViewModel com_civicreport_viewmodel_LoginViewModel2;
+
+      @KeepFieldType
+      ReportViewModel com_civicreport_viewmodel_ReportViewModel2;
+
+      @KeepFieldType
+      ReportDetailViewModel com_civicreport_viewmodel_ReportDetailViewModel2;
+
+      @KeepFieldType
+      AuthViewModel com_civicreport_viewmodel_AuthViewModel2;
     }
 
     private static final class SwitchingProvider<T> implements Provider<T> {
@@ -663,11 +661,9 @@ public final class DaggerCivicReportApp_HiltComponents_SingletonC {
 
     private final SingletonCImpl singletonCImpl = this;
 
-    private Provider<OkHttpClient> provideOkHttpClientProvider;
+    private Provider<CivicReportDatabase> provideDatabaseProvider;
 
-    private Provider<Retrofit> provideRetrofitProvider;
-
-    private Provider<CivicReportApi> provideCivicReportApiProvider;
+    private Provider<ReportDao> provideReportDaoProvider;
 
     private Provider<AuthRepository> provideAuthRepositoryProvider;
 
@@ -681,15 +677,14 @@ public final class DaggerCivicReportApp_HiltComponents_SingletonC {
 
     @SuppressWarnings("unchecked")
     private void initialize(final ApplicationContextModule applicationContextModuleParam) {
-      this.provideOkHttpClientProvider = DoubleCheck.provider(new SwitchingProvider<OkHttpClient>(singletonCImpl, 3));
-      this.provideRetrofitProvider = DoubleCheck.provider(new SwitchingProvider<Retrofit>(singletonCImpl, 2));
-      this.provideCivicReportApiProvider = DoubleCheck.provider(new SwitchingProvider<CivicReportApi>(singletonCImpl, 1));
-      this.provideAuthRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<AuthRepository>(singletonCImpl, 4));
+      this.provideDatabaseProvider = DoubleCheck.provider(new SwitchingProvider<CivicReportDatabase>(singletonCImpl, 2));
+      this.provideReportDaoProvider = DoubleCheck.provider(new SwitchingProvider<ReportDao>(singletonCImpl, 1));
+      this.provideAuthRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<AuthRepository>(singletonCImpl, 3));
       this.provideReportRepositoryProvider = DoubleCheck.provider(new SwitchingProvider<ReportRepository>(singletonCImpl, 0));
     }
 
     @Override
-    public void injectCivicReportApp(CivicReportApp arg0) {
+    public void injectCivicReportApp(CivicReportApp civicReportApp) {
     }
 
     @Override
@@ -722,18 +717,15 @@ public final class DaggerCivicReportApp_HiltComponents_SingletonC {
       public T get() {
         switch (id) {
           case 0: // com.civicreport.data.repository.ReportRepository 
-          return (T) AppModule_ProvideReportRepositoryFactory.provideReportRepository(singletonCImpl.provideCivicReportApiProvider.get(), singletonCImpl.provideAuthRepositoryProvider.get(), ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule));
+          return (T) AppModule_ProvideReportRepositoryFactory.provideReportRepository(singletonCImpl.provideReportDaoProvider.get(), singletonCImpl.provideAuthRepositoryProvider.get(), ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule));
 
-          case 1: // com.civicreport.data.api.CivicReportApi 
-          return (T) AppModule_ProvideCivicReportApiFactory.provideCivicReportApi(singletonCImpl.provideRetrofitProvider.get());
+          case 1: // com.civicreport.data.local.ReportDao 
+          return (T) AppModule_ProvideReportDaoFactory.provideReportDao(singletonCImpl.provideDatabaseProvider.get());
 
-          case 2: // retrofit2.Retrofit 
-          return (T) AppModule_ProvideRetrofitFactory.provideRetrofit(singletonCImpl.provideOkHttpClientProvider.get());
+          case 2: // com.civicreport.data.local.CivicReportDatabase 
+          return (T) AppModule_ProvideDatabaseFactory.provideDatabase(ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule));
 
-          case 3: // okhttp3.OkHttpClient 
-          return (T) AppModule_ProvideOkHttpClientFactory.provideOkHttpClient();
-
-          case 4: // com.civicreport.data.repository.AuthRepository 
+          case 3: // com.civicreport.data.repository.AuthRepository 
           return (T) AppModule_ProvideAuthRepositoryFactory.provideAuthRepository(ApplicationContextModule_ProvideContextFactory.provideContext(singletonCImpl.applicationContextModule));
 
           default: throw new AssertionError(id);

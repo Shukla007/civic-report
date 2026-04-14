@@ -28,6 +28,7 @@ import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.civicreport.data.api.ApiConstants
+import com.civicreport.ui.components.GradientHeader
 import com.civicreport.ui.theme.*
 import com.civicreport.viewmodel.ReportViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -88,15 +89,16 @@ fun ReportScreen(
     }
     
     // Handle success
-    LaunchedEffect(formState.isSuccess) {
+    LaunchedEffect(formState.isSuccess, formState.createdReportId) {
         if (formState.isSuccess && formState.createdReportId != null) {
+            val reportId = formState.createdReportId!!
             Toast.makeText(
                 context,
-                "Report submitted! ID: ${formState.createdReportId}",
+                "Report submitted! ID: $reportId",
                 Toast.LENGTH_LONG
             ).show()
             viewModel.resetForm()
-            onReportCreated(formState.createdReportId!!)
+            onReportCreated(reportId)
         }
     }
     
@@ -111,14 +113,10 @@ fun ReportScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Background)
+            .background(MaterialTheme.colorScheme.background)
     ) {
-        // Header
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            color = Primary,
-            shadowElevation = 4.dp
-        ) {
+        // Header - uses GradientHeader for safe area + dark theme
+        GradientHeader {
             Column(
                 modifier = Modifier.padding(20.dp)
             ) {
@@ -128,10 +126,11 @@ fun ReportScreen(
                     color = OnPrimary,
                     fontWeight = FontWeight.Bold
                 )
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "Help improve your community",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = OnPrimary.copy(alpha = 0.8f)
+                    color = OnPrimary.copy(alpha = 0.85f)
                 )
             }
         }
@@ -152,8 +151,8 @@ fun ReportScreen(
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Primary,
-                    focusedLabelColor = Primary
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary
                 )
             )
             
@@ -168,8 +167,8 @@ fun ReportScreen(
                     .height(120.dp),
                 maxLines = 5,
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Primary,
-                    focusedLabelColor = Primary
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary
                 )
             )
             
@@ -190,8 +189,8 @@ fun ReportScreen(
                         .fillMaxWidth()
                         .menuAnchor(),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Primary,
-                        focusedLabelColor = Primary
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary
                     )
                 )
                 
@@ -215,7 +214,8 @@ fun ReportScreen(
             Text(
                 text = "Priority",
                 style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Medium
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface
             )
             
             Row(
@@ -229,7 +229,7 @@ fun ReportScreen(
                         "medium" -> PriorityMedium
                         "high" -> PriorityHigh
                         "critical" -> PriorityCritical
-                        else -> Primary
+                        else -> MaterialTheme.colorScheme.primary
                     }
                     
                     FilterChip(
@@ -247,7 +247,7 @@ fun ReportScreen(
             // Location
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = Surface),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Row(
@@ -259,7 +259,7 @@ fun ReportScreen(
                     Icon(
                         imageVector = Icons.Default.LocationOn,
                         contentDescription = null,
-                        tint = if (formState.latitude != null) Secondary else OnSurfaceVariant
+                        tint = if (formState.latitude != null) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     
                     Spacer(modifier = Modifier.width(12.dp))
@@ -268,7 +268,8 @@ fun ReportScreen(
                         Text(
                             text = "Location",
                             style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.Medium
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = if (formState.latitude != null && formState.longitude != null) {
@@ -277,7 +278,7 @@ fun ReportScreen(
                                 "Getting location..."
                             },
                             style = MaterialTheme.typography.bodySmall,
-                            color = OnSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     
@@ -285,7 +286,7 @@ fun ReportScreen(
                         Icon(
                             imageVector = Icons.Default.CheckCircle,
                             contentDescription = "Location acquired",
-                            tint = Secondary
+                            tint = MaterialTheme.colorScheme.secondary
                         )
                     } else {
                         CircularProgressIndicator(
@@ -300,7 +301,8 @@ fun ReportScreen(
             Text(
                 text = "Photos (${formState.photoUris.size}/5)",
                 style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Medium
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface
             )
             
             Row(
@@ -312,7 +314,7 @@ fun ReportScreen(
                     modifier = Modifier
                         .size(80.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .border(2.dp, CardBorder, RoundedCornerShape(8.dp))
+                        .border(2.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(8.dp))
                         .clickable {
                             if (cameraPermission.status.isGranted) {
                                 val photoFile = File(
@@ -334,7 +336,7 @@ fun ReportScreen(
                     Icon(
                         imageVector = Icons.Default.CameraAlt,
                         contentDescription = "Take photo",
-                        tint = OnSurfaceVariant
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 
@@ -343,7 +345,7 @@ fun ReportScreen(
                     modifier = Modifier
                         .size(80.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .border(2.dp, CardBorder, RoundedCornerShape(8.dp))
+                        .border(2.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(8.dp))
                         .clickable {
                             photoPickerLauncher.launch("image/*")
                         },
@@ -352,7 +354,7 @@ fun ReportScreen(
                     Icon(
                         imageVector = Icons.Default.PhotoLibrary,
                         contentDescription = "Choose from gallery",
-                        tint = OnSurfaceVariant
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -379,12 +381,12 @@ fun ReportScreen(
                                 modifier = Modifier
                                     .align(Alignment.TopEnd)
                                     .size(24.dp)
-                                    .background(Error.copy(alpha = 0.8f), RoundedCornerShape(12.dp))
+                                    .background(MaterialTheme.colorScheme.error.copy(alpha = 0.8f), RoundedCornerShape(12.dp))
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Close,
                                     contentDescription = "Remove",
-                                    tint = OnError,
+                                    tint = MaterialTheme.colorScheme.onError,
                                     modifier = Modifier.size(16.dp)
                                 )
                             }
@@ -402,13 +404,13 @@ fun ReportScreen(
                     .fillMaxWidth()
                     .height(56.dp),
                 enabled = !formState.isLoading,
-                colors = ButtonDefaults.buttonColors(containerColor = Primary),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 if (formState.isLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(24.dp),
-                        color = OnPrimary
+                        color = MaterialTheme.colorScheme.onPrimary
                     )
                 } else {
                     Icon(

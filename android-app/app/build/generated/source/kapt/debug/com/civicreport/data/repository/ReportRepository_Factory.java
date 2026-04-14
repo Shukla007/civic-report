@@ -1,7 +1,7 @@
 package com.civicreport.data.repository;
 
 import android.content.Context;
-import com.civicreport.data.api.CivicReportApi;
+import com.civicreport.data.local.ReportDao;
 import dagger.internal.DaggerGenerated;
 import dagger.internal.Factory;
 import dagger.internal.QualifierMetadata;
@@ -25,31 +25,31 @@ import javax.inject.Provider;
     "deprecation"
 })
 public final class ReportRepository_Factory implements Factory<ReportRepository> {
-  private final Provider<CivicReportApi> apiProvider;
+  private final Provider<ReportDao> reportDaoProvider;
 
   private final Provider<AuthRepository> authRepositoryProvider;
 
   private final Provider<Context> contextProvider;
 
-  public ReportRepository_Factory(Provider<CivicReportApi> apiProvider,
+  public ReportRepository_Factory(Provider<ReportDao> reportDaoProvider,
       Provider<AuthRepository> authRepositoryProvider, Provider<Context> contextProvider) {
-    this.apiProvider = apiProvider;
+    this.reportDaoProvider = reportDaoProvider;
     this.authRepositoryProvider = authRepositoryProvider;
     this.contextProvider = contextProvider;
   }
 
   @Override
   public ReportRepository get() {
-    return newInstance(apiProvider.get(), authRepositoryProvider.get(), contextProvider.get());
+    return newInstance(reportDaoProvider.get(), authRepositoryProvider.get(), contextProvider.get());
   }
 
-  public static ReportRepository_Factory create(Provider<CivicReportApi> apiProvider,
+  public static ReportRepository_Factory create(Provider<ReportDao> reportDaoProvider,
       Provider<AuthRepository> authRepositoryProvider, Provider<Context> contextProvider) {
-    return new ReportRepository_Factory(apiProvider, authRepositoryProvider, contextProvider);
+    return new ReportRepository_Factory(reportDaoProvider, authRepositoryProvider, contextProvider);
   }
 
-  public static ReportRepository newInstance(CivicReportApi api, AuthRepository authRepository,
+  public static ReportRepository newInstance(ReportDao reportDao, AuthRepository authRepository,
       Context context) {
-    return new ReportRepository(api, authRepository, context);
+    return new ReportRepository(reportDao, authRepository, context);
   }
 }

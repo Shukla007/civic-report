@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Navigation from '../components/Navigation';
 import './TrackReport.css';
-
-const API_URL = process.env.REACT_APP_API_URL || 'https://civic-report-production.up.railway.app/api';
+import { API_URL, ASSET_BASE_URL } from '../config/api';
 
 function TrackReport() {
   const [reportId, setReportId] = useState('');
@@ -213,7 +212,7 @@ function TrackReport() {
                   {report.photos.map((photo, index) => (
                     <img
                       key={index}
-                      src={`${process.env.REACT_APP_API_URL?.replace('/api', '') || 'https://civic-report-production.up.railway.app'}${photo}`}
+                      src={`${ASSET_BASE_URL}${photo}`}
                       alt={`Report ${index + 1}`}
                       className="report-photo"
                     />
@@ -227,7 +226,7 @@ function TrackReport() {
               <div className="report-voice card">
                 <h3>Voice Note</h3>
                 <audio controls className="audio-player">
-                  <source src={`${process.env.REACT_APP_API_URL?.replace('/api', '') || 'https://civic-report-production.up.railway.app'}${report.voiceNote}`} type="audio/webm" />
+                  <source src={`${ASSET_BASE_URL}${report.voiceNote}`} type="audio/webm" />
                   Your browser does not support the audio element.
                 </audio>
               </div>

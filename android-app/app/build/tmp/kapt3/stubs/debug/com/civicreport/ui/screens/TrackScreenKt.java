@@ -11,7 +11,7 @@ import androidx.compose.ui.Modifier;
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType;
 import androidx.compose.ui.layout.ContentScale;
 import androidx.compose.ui.text.font.FontWeight;
-import com.civicreport.data.api.ApiConstants;
+import androidx.compose.ui.window.DialogProperties;
 import com.civicreport.ui.components.*;
 import com.civicreport.ui.theme.*;
 import com.civicreport.viewmodel.TrackViewModel;

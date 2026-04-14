@@ -10,6 +10,7 @@ import androidx.compose.ui.Alignment;
 import androidx.compose.ui.Modifier;
 import androidx.compose.ui.layout.ContentScale;
 import androidx.compose.ui.text.font.FontWeight;
+import androidx.compose.ui.window.DialogProperties;
 import com.civicreport.data.api.ApiConstants;
 import com.civicreport.ui.components.*;
 import com.civicreport.ui.theme.*;

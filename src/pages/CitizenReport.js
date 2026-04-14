@@ -5,8 +5,7 @@ import Navigation from '../components/Navigation';
 import PhotoUpload from '../components/PhotoUpload';
 import VoiceRecorder from '../components/VoiceRecorder';
 import './CitizenReport.css';
-
-const API_URL = process.env.REACT_APP_API_URL || 'https://civic-report-production.up.railway.app/api';
+import { API_URL } from '../config/api';
 
 const CATEGORIES = [
   'Road Damage',

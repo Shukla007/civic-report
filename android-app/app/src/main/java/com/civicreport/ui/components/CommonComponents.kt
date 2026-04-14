@@ -19,7 +19,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.civicreport.data.api.ApiConstants
 import com.civicreport.data.model.Report
 import com.civicreport.ui.theme.*
 
@@ -34,7 +33,7 @@ fun ReportCard(
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Surface),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
@@ -48,7 +47,7 @@ fun ReportCard(
                 Text(
                     text = report.reportId,
                     style = MaterialTheme.typography.labelMedium,
-                    color = Primary,
+                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold
                 )
                 StatusChip(status = report.status)
@@ -60,6 +59,7 @@ fun ReportCard(
                 text = report.title,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
@@ -69,7 +69,7 @@ fun ReportCard(
             Text(
                 text = report.description,
                 style = MaterialTheme.typography.bodySmall,
-                color = OnSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
@@ -86,13 +86,13 @@ fun ReportCard(
                         imageVector = Icons.Default.Category,
                         contentDescription = null,
                         modifier = Modifier.size(16.dp),
-                        tint = OnSurfaceVariant
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = report.category,
                         style = MaterialTheme.typography.bodySmall,
-                        color = OnSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 
@@ -112,7 +112,8 @@ fun StatusChip(
         "acknowledged" -> StatusAcknowledged to "Acknowledged"
         "in-progress" -> StatusInProgress to "In Progress"
         "resolved" -> StatusResolved to "Resolved"
-        else -> OnSurfaceVariant to status
+        "rejected" -> StatusRejected to "Rejected"
+        else -> MaterialTheme.colorScheme.onSurfaceVariant to status
     }
     
     Surface(
@@ -140,7 +141,7 @@ fun PriorityChip(
         "medium" -> PriorityMedium to "Medium"
         "high" -> PriorityHigh to "High"
         "critical" -> PriorityCritical to "Critical"
-        else -> OnSurfaceVariant to priority
+        else -> MaterialTheme.colorScheme.onSurfaceVariant to priority
     }
     
     Surface(
@@ -169,7 +170,7 @@ fun StatCard(
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Surface),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
@@ -198,7 +199,7 @@ fun StatCard(
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodySmall,
-                color = OnSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -210,14 +211,19 @@ fun PhotoThumbnail(
     onRemove: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
-    val fullUrl = if (photoUrl.startsWith("http")) photoUrl 
-        else "${ApiConstants.BASE_URL.dropLast(1)}$photoUrl"
-    
+    val fullUrl: Any = if (photoUrl.startsWith("/")) {
+        java.io.File(photoUrl)
+    } else if (photoUrl.startsWith("http")) {
+        photoUrl
+    } else {
+        photoUrl
+    }
+
     Box(
         modifier = modifier
             .size(80.dp)
             .clip(RoundedCornerShape(8.dp))
-            .border(1.dp, CardBorder, RoundedCornerShape(8.dp))
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(8.dp))
     ) {
         AsyncImage(
             model = fullUrl,
@@ -232,12 +238,12 @@ fun PhotoThumbnail(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .size(24.dp)
-                    .background(Error.copy(alpha = 0.8f), CircleShape)
+                    .background(MaterialTheme.colorScheme.error.copy(alpha = 0.8f), CircleShape)
             ) {
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = "Remove",
-                    tint = OnError,
+                    tint = MaterialTheme.colorScheme.onError,
                     modifier = Modifier.size(16.dp)
                 )
             }
@@ -262,7 +268,7 @@ fun TimelineItem(
                 modifier = Modifier
                     .size(12.dp)
                     .clip(CircleShape)
-                    .background(Primary)
+                    .background(MaterialTheme.colorScheme.primary)
             )
             
             if (!isLast) {
@@ -270,7 +276,7 @@ fun TimelineItem(
                     modifier = Modifier
                         .width(2.dp)
                         .height(48.dp)
-                        .background(Primary.copy(alpha = 0.3f))
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
                 )
             }
         }
@@ -281,20 +287,21 @@ fun TimelineItem(
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Medium
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface
             )
             
             Text(
                 text = timestamp,
                 style = MaterialTheme.typography.bodySmall,
-                color = OnSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             
             if (!notes.isNullOrBlank()) {
                 Text(
                     text = notes,
                     style = MaterialTheme.typography.bodySmall,
-                    color = OnSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 4.dp)
                 )
             }
@@ -314,7 +321,7 @@ fun LoadingIndicator(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        CircularProgressIndicator(color = Primary)
+        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
     }
 }
 
@@ -333,7 +340,7 @@ fun ErrorMessage(
         Icon(
             imageVector = Icons.Default.Error,
             contentDescription = null,
-            tint = Error,
+            tint = MaterialTheme.colorScheme.error,
             modifier = Modifier.size(48.dp)
         )
         
@@ -342,7 +349,7 @@ fun ErrorMessage(
         Text(
             text = message,
             style = MaterialTheme.typography.bodyMedium,
-            color = Error
+            color = MaterialTheme.colorScheme.error
         )
         
         if (onRetry != null) {
@@ -350,7 +357,7 @@ fun ErrorMessage(
             
             Button(
                 onClick = onRetry,
-                colors = ButtonDefaults.buttonColors(containerColor = Primary)
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
                 Text("Retry")
             }

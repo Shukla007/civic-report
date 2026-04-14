@@ -28,3 +28,12 @@ yarn-error.log*
 
 # Old JSON database
 server/db.json
+
+# Android build artifacts
+android-app/build/
+android-app/app/build/
+android-app/.gradle/
+
+# Python virtual environment
+.venv/
+__pycache__/

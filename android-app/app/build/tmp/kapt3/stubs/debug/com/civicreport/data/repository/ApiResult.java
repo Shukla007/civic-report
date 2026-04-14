@@ -2,12 +2,14 @@ package com.civicreport.data.repository;
 
 import android.content.Context;
 import android.net.Uri;
-import com.civicreport.data.api.CivicReportApi;
+import com.civicreport.data.local.ReportDao;
+import com.civicreport.data.local.ReportEntity;
 import com.civicreport.data.model.*;
 import dagger.hilt.android.qualifiers.ApplicationContext;
-import okhttp3.MultipartBody;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 

@@ -17,6 +17,7 @@ import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
 import Navigation from '../components/Navigation';
 import { useAuth } from '../context/AuthContext';
 import './Analytics.css';
+import { API_URL } from '../config/api';
 
 ChartJS.register(
   CategoryScale,
@@ -29,8 +30,6 @@ ChartJS.register(
   Legend,
   ArcElement
 );
-
-const API_URL = process.env.REACT_APP_API_URL || 'https://civic-report-production.up.railway.app/api';
 
 function Analytics() {
   const [reports, setReports] = useState([]);

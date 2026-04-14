@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.civicreport.app-mergeDebugResources-68:/values-hi/values-hi.xml",
+            "outputFile": "com.civicreport.app-mergeDebugResources-72:/values-hi/values-hi.xml",
             "map": [
                 {
                     "source": "C:\\Users\\shukl\\.gradle\\caches\\8.11.1\\transforms\\5c6ae29e7b0fc747fdd6598924f5a110\\transformed\\foundation-release\\res\\values-hi\\values-hi.xml",

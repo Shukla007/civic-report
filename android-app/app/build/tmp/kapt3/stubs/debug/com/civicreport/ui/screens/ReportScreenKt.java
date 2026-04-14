@@ -11,7 +11,6 @@ import androidx.compose.material3.*;
 import androidx.compose.runtime.*;
 import androidx.compose.ui.Alignment;
 import androidx.compose.ui.Modifier;
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType;
 import androidx.compose.ui.text.font.FontWeight;
 import androidx.core.content.FileProvider;
 import com.civicreport.data.api.ApiConstants;

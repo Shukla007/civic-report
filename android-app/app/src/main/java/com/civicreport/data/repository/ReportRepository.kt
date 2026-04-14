@@ -2,15 +2,15 @@ package com.civicreport.data.repository
 
 import android.content.Context
 import android.net.Uri
-import com.civicreport.data.api.CivicReportApi
+import com.civicreport.data.local.ReportDao
+import com.civicreport.data.local.ReportEntity
+import com.civicreport.data.local.toReport
 import com.civicreport.data.model.*
 import dagger.hilt.android.qualifiers.ApplicationContext
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.MultipartBody
-import okhttp3.RequestBody.Companion.asRequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 import java.io.FileOutputStream
+import java.text.SimpleDateFormat
+import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -22,37 +22,33 @@ sealed class ApiResult<out T> {
 
 @Singleton
 class ReportRepository @Inject constructor(
-    private val api: CivicReportApi,
+    private val reportDao: ReportDao,
     private val authRepository: AuthRepository,
     @ApplicationContext private val context: Context
 ) {
-    
+
     suspend fun getAllReports(): ApiResult<List<Report>> {
         return try {
-            val response = api.getAllReports()
-            if (response.isSuccessful) {
-                ApiResult.Success(response.body() ?: emptyList())
-            } else {
-                ApiResult.Error("Failed to fetch reports: ${response.message()}")
-            }
+            val entities = reportDao.getAllReports()
+            ApiResult.Success(entities.map { it.toReport() })
         } catch (e: Exception) {
-            ApiResult.Error("Network error: ${e.message}")
+            ApiResult.Error("Failed to fetch reports: ${e.message}")
         }
     }
-    
+
     suspend fun getReportById(reportId: String): ApiResult<Report> {
         return try {
-            val response = api.getReportById(reportId)
-            if (response.isSuccessful && response.body() != null) {
-                ApiResult.Success(response.body()!!)
+            val entity = reportDao.getReportByReportId(reportId)
+            if (entity != null) {
+                ApiResult.Success(entity.toReport())
             } else {
                 ApiResult.Error("Report not found")
             }
         } catch (e: Exception) {
-            ApiResult.Error("Network error: ${e.message}")
+            ApiResult.Error("Error fetching report: ${e.message}")
         }
     }
-    
+
     suspend fun createReport(
         title: String,
         description: String,
@@ -64,46 +60,56 @@ class ReportRepository @Inject constructor(
         voiceNoteUri: Uri? = null
     ): ApiResult<Report> {
         return try {
-            val titleBody = title.toRequestBody("text/plain".toMediaTypeOrNull())
-            val descriptionBody = description.toRequestBody("text/plain".toMediaTypeOrNull())
-            val categoryBody = category.toRequestBody("text/plain".toMediaTypeOrNull())
-            val priorityBody = priority.toRequestBody("text/plain".toMediaTypeOrNull())
-            val latitudeBody = latitude.toString().toRequestBody("text/plain".toMediaTypeOrNull())
-            val longitudeBody = longitude.toString().toRequestBody("text/plain".toMediaTypeOrNull())
-            
-            val photoParts = photoUris.mapIndexed { index, uri ->
-                val file = uriToFile(uri, "photo_$index.jpg")
-                val requestBody = file.asRequestBody("image/*".toMediaTypeOrNull())
-                MultipartBody.Part.createFormData("photos", file.name, requestBody)
+            val now = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).apply {
+                timeZone = TimeZone.getTimeZone("UTC")
+            }.format(Date())
+
+            val count = reportDao.getReportCount()
+            val reportId = "IND-%05d".format(count + 1)
+            val id = UUID.randomUUID().toString()
+
+            // Save photos locally
+            val savedPhotoPaths = photoUris.mapIndexed { index, uri ->
+                saveFileLocally(uri, "report_${id}_photo_$index.jpg")
             }
-            
-            val voiceNotePart = voiceNoteUri?.let { uri ->
-                val file = uriToFile(uri, "voice_note.wav")
-                val requestBody = file.asRequestBody("audio/*".toMediaTypeOrNull())
-                MultipartBody.Part.createFormData("voiceNote", file.name, requestBody)
+
+            // Save voice note locally
+            val savedVoiceNote = voiceNoteUri?.let {
+                saveFileLocally(it, "report_${id}_voice.wav")
             }
-            
-            val response = api.createReport(
-                title = titleBody,
-                description = descriptionBody,
-                category = categoryBody,
-                priority = priorityBody,
-                latitude = latitudeBody,
-                longitude = longitudeBody,
-                photos = photoParts.ifEmpty { null },
-                voiceNote = voiceNotePart
+
+            val historyEntry = HistoryEntry(
+                timestamp = now,
+                action = "Report created",
+                notes = "Report submitted via mobile app"
             )
-            
-            if (response.isSuccessful && response.body() != null) {
-                ApiResult.Success(response.body()!!)
-            } else {
-                ApiResult.Error("Failed to create report: ${response.message()}")
-            }
+
+            val entity = ReportEntity(
+                id = id,
+                reportId = reportId,
+                title = title,
+                description = description,
+                category = category,
+                priority = priority,
+                status = "pending",
+                latitude = latitude,
+                longitude = longitude,
+                photos = savedPhotoPaths,
+                voiceNote = savedVoiceNote,
+                assignedTo = null,
+                history = listOf(historyEntry),
+                createdAt = now,
+                updatedAt = now
+            )
+
+            reportDao.insertReport(entity)
+
+            ApiResult.Success(entity.toReport())
         } catch (e: Exception) {
-            ApiResult.Error("Network error: ${e.message}")
+            ApiResult.Error("Failed to create report: ${e.message}")
         }
     }
-    
+
     suspend fun updateReport(
         reportId: String,
         status: String? = null,
@@ -111,66 +117,66 @@ class ReportRepository @Inject constructor(
         notes: String? = null
     ): ApiResult<Report> {
         return try {
-            val token = authRepository.getToken()
-                ?: return ApiResult.Error("Not authenticated")
-            
-            val response = api.updateReport(
-                reportId = reportId,
-                token = authRepository.getAuthHeader(token),
-                request = ReportUpdateRequest(status, assignedTo, notes)
-            )
-            
-            if (response.isSuccessful && response.body() != null) {
-                ApiResult.Success(response.body()!!)
-            } else {
-                ApiResult.Error("Failed to update report: ${response.message()}")
+            val entity = reportDao.getReportByReportId(reportId)
+                ?: return ApiResult.Error("Report not found")
+
+            val now = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).apply {
+                timeZone = TimeZone.getTimeZone("UTC")
+            }.format(Date())
+
+            val actionText = when {
+                status != null -> "Status changed to ${status.replaceFirstChar { it.uppercase() }}"
+                assignedTo != null -> "Assigned to $assignedTo"
+                else -> "Report updated"
             }
+
+            val newHistoryEntry = HistoryEntry(
+                timestamp = now,
+                action = actionText,
+                notes = notes
+            )
+
+            val updatedEntity = entity.copy(
+                status = status ?: entity.status,
+                assignedTo = assignedTo ?: entity.assignedTo,
+                history = entity.history + newHistoryEntry,
+                updatedAt = now
+            )
+
+            reportDao.updateReport(updatedEntity)
+
+            ApiResult.Success(updatedEntity.toReport())
         } catch (e: Exception) {
-            ApiResult.Error("Network error: ${e.message}")
+            ApiResult.Error("Failed to update report: ${e.message}")
         }
     }
-    
+
     suspend fun deleteReport(reportId: String): ApiResult<Unit> {
         return try {
-            val token = authRepository.getToken()
-                ?: return ApiResult.Error("Not authenticated")
-            
-            val response = api.deleteReport(
-                reportId = reportId,
-                token = authRepository.getAuthHeader(token)
-            )
-            
-            if (response.isSuccessful) {
-                ApiResult.Success(Unit)
-            } else {
-                ApiResult.Error("Failed to delete report: ${response.message()}")
-            }
+            reportDao.deleteReportByReportId(reportId)
+            ApiResult.Success(Unit)
         } catch (e: Exception) {
-            ApiResult.Error("Network error: ${e.message}")
+            ApiResult.Error("Failed to delete report: ${e.message}")
         }
     }
-    
+
     suspend fun login(username: String, password: String): ApiResult<String> {
         return try {
-            val response = api.login(LoginRequest(username, password))
-            if (response.isSuccessful && response.body()?.success == true) {
-                val token = response.body()!!.token!!
+            // Local admin authentication - hardcoded credentials for offline mode
+            if (username == "admin" && password == "admin123") {
+                val token = "local_admin_token_${UUID.randomUUID()}"
                 authRepository.saveToken(token)
                 ApiResult.Success(token)
             } else {
-                ApiResult.Error(response.body()?.message ?: "Login failed")
+                ApiResult.Error("Invalid username or password")
             }
         } catch (e: Exception) {
-            ApiResult.Error("Network error: ${e.message}")
+            ApiResult.Error("Login failed: ${e.message}")
         }
     }
-    
+
     suspend fun logout(): ApiResult<Unit> {
         return try {
-            val token = authRepository.getToken()
-            if (token != null) {
-                api.logout(authRepository.getAuthHeader(token))
-            }
             authRepository.clearToken()
             ApiResult.Success(Unit)
         } catch (e: Exception) {
@@ -178,24 +184,26 @@ class ReportRepository @Inject constructor(
             ApiResult.Success(Unit)
         }
     }
-    
+
     suspend fun verifyToken(): Boolean {
         return try {
-            val token = authRepository.getToken() ?: return false
-            val response = api.verifyToken(authRepository.getAuthHeader(token))
-            response.isSuccessful
+            val token = authRepository.getToken()
+            token != null && token.startsWith("local_admin_token_")
         } catch (e: Exception) {
             false
         }
     }
-    
-    private fun uriToFile(uri: Uri, fileName: String): File {
+
+    private fun saveFileLocally(uri: Uri, fileName: String): String {
+        val mediaDir = File(context.filesDir, "report_media")
+        if (!mediaDir.exists()) mediaDir.mkdirs()
+
+        val file = File(mediaDir, fileName)
         val inputStream = context.contentResolver.openInputStream(uri)
-        val file = File(context.cacheDir, fileName)
         FileOutputStream(file).use { outputStream ->
             inputStream?.copyTo(outputStream)
         }
         inputStream?.close()
-        return file
+        return file.absolutePath
     }
 }

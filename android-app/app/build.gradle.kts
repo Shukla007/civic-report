@@ -76,11 +76,19 @@ dependencies {
     kapt("com.google.dagger:hilt-compiler:2.52")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
-    // Retrofit for API calls
+    // Retrofit for API calls (kept for future use)
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
     implementation("com.squareup.retrofit2:converter-gson:2.11.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
-    
+
+    // Room for local database
+    implementation("androidx.room:room-runtime:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+    kapt("androidx.room:room-compiler:2.6.1")
+
+    // Gson for JSON serialization
+    implementation("com.google.code.gson:gson:2.11.0")
+
     // Coil for image loading
     implementation("io.coil-kt:coil-compose:2.7.0")
 

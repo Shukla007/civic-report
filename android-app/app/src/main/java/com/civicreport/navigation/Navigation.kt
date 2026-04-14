@@ -3,6 +3,7 @@ package com.civicreport.navigation
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
@@ -70,6 +71,7 @@ fun CivicReportNavigation() {
         bottomBar = {
             if (showBottomBar) {
                 NavigationBar(
+                    modifier = Modifier.navigationBarsPadding(),
                     containerColor = MaterialTheme.colorScheme.surface,
                     tonalElevation = 0.dp
                 ) {
@@ -117,7 +119,7 @@ fun CivicReportNavigation() {
         NavHost(
             navController = navController,
             startDestination = Screen.Report.route,
-            modifier = Modifier.padding(paddingValues),
+            modifier = Modifier.padding(bottom = paddingValues.calculateBottomPadding()),
             enterTransition = { fadeIn(animationSpec = tween(300)) + slideInHorizontally(initialOffsetX = { 30 }, animationSpec = tween(300)) },
             exitTransition = { fadeOut(animationSpec = tween(200)) },
             popEnterTransition = { fadeIn(animationSpec = tween(300)) + slideInHorizontally(initialOffsetX = { -30 }, animationSpec = tween(300)) },
@@ -126,7 +128,14 @@ fun CivicReportNavigation() {
             composable(Screen.Report.route) {
                 ReportScreen(
                     onReportCreated = { reportId ->
-                        navController.navigate(Screen.Track.route)
+                        navController.navigate(Screen.Track.route) {
+                            popUpTo(Screen.Report.route) {
+                                inclusive = false
+                                saveState = false
+                            }
+                            launchSingleTop = true
+                            restoreState = false
+                        }
                     }
                 )
             }

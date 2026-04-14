@@ -1,6 +1,7 @@
 package com.civicreport.ui.theme;
 
 import android.app.Activity;
+import android.os.Build;
 import androidx.compose.runtime.Composable;
 import androidx.core.view.WindowCompat;
 

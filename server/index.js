@@ -6,7 +6,16 @@ const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 const http = require('http');
 const socketIo = require('socket.io');
-require('dotenv').config();
+const dotenv = require('dotenv');
+
+// Load backend env vars.
+// Priority (first wins):
+// 1) `server/.env`
+// 2) repo-root `.env`
+// 3) current working directory `.env`
+dotenv.config({ path: path.join(__dirname, '.env') });
+dotenv.config({ path: path.join(__dirname, '../.env') });
+dotenv.config();
 
 // Import MongoDB connection
 const connectDB = require('./config/db');

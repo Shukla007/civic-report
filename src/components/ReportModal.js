@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './ReportModal.css';
+import { ASSET_BASE_URL } from '../config/api';
 
 const DEPARTMENTS = [
   'Public Works Department',
@@ -83,7 +84,7 @@ function ReportModal({ report, onClose, onUpdate }) {
                 {report.photos.map((photo, index) => (
                   <img
                     key={index}
-                    src={`${process.env.REACT_APP_API_URL?.replace('/api', '') || 'https://civic-report-production.up.railway.app'}${photo}`}
+                    src={`${ASSET_BASE_URL}${photo}`}
                     alt={`Report ${index + 1}`}
                     className="report-photo"
                   />
@@ -97,7 +98,7 @@ function ReportModal({ report, onClose, onUpdate }) {
             <div className="report-section">
               <h3>Voice Note</h3>
               <audio controls className="audio-player">
-                <source src={`${process.env.REACT_APP_API_URL?.replace('/api', '') || 'https://civic-report-production.up.railway.app'}${report.voiceNote}`} type="audio/webm" />
+                <source src={`${ASSET_BASE_URL}${report.voiceNote}`} type="audio/webm" />
                 Your browser does not support the audio element.
               </audio>
             </div>

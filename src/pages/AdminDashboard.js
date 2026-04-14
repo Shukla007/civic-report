@@ -8,6 +8,7 @@ import FilterPanel from '../components/FilterPanel';
 import { useAuth } from '../context/AuthContext';
 import 'leaflet/dist/leaflet.css';
 import './AdminDashboard.css';
+import { API_URL } from '../config/api';
 
 // Fix for default marker icons in react-leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -16,8 +17,6 @@ L.Icon.Default.mergeOptions({
   iconUrl: require('leaflet/dist/images/marker-icon.png'),
   shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
 });
-
-const API_URL = process.env.REACT_APP_API_URL || 'https://civic-report-production.up.railway.app/api';
 
 // Custom marker icons based on priority
 const createCustomIcon = (priority, status) => {
